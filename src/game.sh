@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# ===== CORES =====
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -9,6 +10,7 @@ NC='\033[0m'
 
 SAVE_FILE="save.dat"
 
+# ===== ESTADO =====
 nivel=1
 fase=1
 vida_max=100
@@ -19,42 +21,45 @@ cooldown=0
 pocao_usada=false
 inimigo_stunado=false
 
-# ===== TELA DE TÍTULO =====
-
+# ===== ANIMAÇÃO =====
 animar_texto() {
     texto="$1"
     for (( i=0; i<${#texto}; i++ )); do
         printf "${texto:$i:1}"
-        sleep 0.02
+        sleep 0.015
     done
     echo ""
 }
 
+# ===== TELA DE TÍTULO RESPONSIVA =====
 tela_titulo() {
     clear
+    largura=$(tput cols)
+
     echo -e "${CYAN}"
-    echo "  ████████╗███████╗██████╗ ███╗   
-███╗"
-    echo "  ╚══██╔══╝██╔════╝██╔══██╗████╗ 
-████║"
-    echo "     ██║   █████╗  
-██████╔╝██╔████╔██║"
-    echo "     ██║   ██╔══╝  
-██╔══██╗██║╚██╔╝██║"
-    echo "     ██║   ███████╗██║  ██║██║ ╚═╝ 
-██║"
-    echo "     ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝"
-    echo ""
-    echo "        SPACE ARENA"
+
+    if [ "$largura" -ge 80 ]; then
+        echo "  _____  _____  _____  _____ "
+        echo " |_   _||  ___||  ___||  ___|"
+        echo "   | |  | |__  | |__  | |__  "
+        echo "   | |  |  __| |  __| |  __| "
+        echo "   | |  | |___ | |___ | |___ "
+        echo "   \_/   \____/ \____/ \____/ "
+        echo ""
+        echo "          SPACE ARENA"
+    else
+        echo "   TERMINAL SPACE ARENA"
+    fi
+
     echo -e "${NC}"
-    sleep 0.5
+    sleep 0.4
 
     animar_texto "Inicializando sistemas..."
-    sleep 0.5
+    sleep 0.3
     animar_texto "Carregando motores..."
-    sleep 0.5
+    sleep 0.3
     animar_texto "Preparando combate..."
-    sleep 1
+    sleep 0.6
 
     echo ""
     echo "Pressione ENTER para continuar"
@@ -62,7 +67,6 @@ tela_titulo() {
 }
 
 # ===== SAVE =====
-
 salvar_progresso() {
     echo "nivel=$nivel" > "$SAVE_FILE"
     echo "fase=$fase" >> "$SAVE_FILE"
@@ -90,7 +94,6 @@ resetar_progresso() {
 }
 
 # ===== MENU =====
-
 menu_inicial() {
     clear
     echo "================================="
@@ -130,7 +133,6 @@ menu_inicial() {
 }
 
 # ===== JOGO =====
-
 iniciar_fase() {
     vida=$vida_max
     cooldown=0
@@ -158,6 +160,12 @@ mostrar_status() {
     echo -e "Inimigo: ${RED}$inimigo${NC}"
     echo -e "XP: ${YELLOW}$xp / $xp_proximo${NC}"
     echo -e "Cooldown Sobrecarga: $cooldown"
+
+    if [ "$pocao_usada" = false ]; then
+        echo -e "Poção disponível: ${GREEN}Sim${NC}"
+    else
+        echo -e "Poção disponível: ${RED}Não${NC}"
+    fi
     echo ""
 }
 
@@ -223,6 +231,7 @@ turno_inimigo() {
 
     if [ "$defendendo" = true ]; then
         ataque=$(( ataque / 2 ))
+        echo "Defesa reduziu o dano."
     fi
 
     vida=$(( vida - ataque ))
