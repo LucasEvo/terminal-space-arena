@@ -21,9 +21,26 @@ cooldown=0
 pocao_usada=false
 inimigo_stunado=false
 
+# ===== FUNÇÃO PARA CENTRALIZAR TEXTO =====
+centralizar() {
+    largura_terminal=$(tput cols)
+    texto="$1"
+    comprimento=${#texto}
+    if [ $comprimento -lt $largura_terminal ]; then
+        padding=$(( (largura_terminal - comprimento) / 2 ))
+        printf "%*s%s\n" $padding "" "$texto"
+    else
+        echo "$texto"
+    fi
+}
+
 # ===== ANIMAÇÃO =====
 animar_texto() {
     texto="$1"
+    largura_terminal=$(tput cols)
+    comprimento=${#texto}
+    padding=$(( (largura_terminal - comprimento) / 2 ))
+    printf "%*s" $padding ""
     for (( i=0; i<${#texto}; i++ )); do
         printf "${texto:$i:1}"
         sleep 0.015
@@ -31,24 +48,24 @@ animar_texto() {
     echo ""
 }
 
-# ===== TELA DE TÍTULO RESPONSIVA =====
+# ===== TELA DE TÍTULO =====
 tela_titulo() {
     clear
-    largura=$(tput cols)
-
     echo -e "${CYAN}"
 
+    largura=$(tput cols)
+
     if [ "$largura" -ge 80 ]; then
-        echo "  _____  _____  _____  _____ "
-        echo " |_   _||  ___||  ___||  ___|"
-        echo "   | |  | |__  | |__  | |__  "
-        echo "   | |  |  __| |  __| |  __| "
-        echo "   | |  | |___ | |___ | |___ "
-        echo "   \_/   \____/ \____/ \____/ "
+        centralizar "  _____  _____  _____  _____ "
+        centralizar " |_   _||  ___||  ___||  ___|"
+        centralizar "   | |  | |__  | |__  | |__  "
+        centralizar "   | |  |  __| |  __| |  __| "
+        centralizar "   | |  | |___ | |___ | |___ "
+        centralizar "   \_/   \____/ \____/ \____/ "
         echo ""
-        echo "          SPACE ARENA"
+        centralizar "SPACE ARENA"
     else
-        echo "   TERMINAL SPACE ARENA"
+        centralizar "TERMINAL SPACE ARENA"
     fi
 
     echo -e "${NC}"
@@ -62,7 +79,7 @@ tela_titulo() {
     sleep 0.6
 
     echo ""
-    echo "Pressione ENTER para continuar"
+    centralizar "Pressione ENTER para continuar"
     read
 }
 
@@ -96,13 +113,14 @@ resetar_progresso() {
 # ===== MENU =====
 menu_inicial() {
     clear
-    echo "================================="
-    echo -e "${CYAN}   TERMINAL SPACE ARENA${NC}"
-    echo "================================="
-    echo "1 - Novo Jogo"
-    echo "2 - Continuar"
-    echo "3 - Resetar Progresso"
-    echo "4 - Sair"
+    centralizar "================================="
+    centralizar "TERMINAL SPACE ARENA"
+    centralizar "================================="
+    echo ""
+    centralizar "1 - Novo Jogo"
+    centralizar "2 - Continuar"
+    centralizar "3 - Resetar Progresso"
+    centralizar "4 - Sair"
     echo ""
     read opcao
 
@@ -149,32 +167,32 @@ iniciar_fase() {
     fi
 
     echo ""
-    echo "================================="
-    echo -e "${CYAN}FASE $fase | NÍVEL $nivel${NC}"
-    echo "================================="
+    centralizar "================================="
+    centralizar "FASE $fase | NÍVEL $nivel"
+    centralizar "================================="
 }
 
 mostrar_status() {
     echo ""
-    echo -e "Vida: ${GREEN}$vida${NC}"
-    echo -e "Inimigo: ${RED}$inimigo${NC}"
-    echo -e "XP: ${YELLOW}$xp / $xp_proximo${NC}"
-    echo -e "Cooldown Sobrecarga: $cooldown"
+    centralizar "Vida: $vida"
+    centralizar "Inimigo: $inimigo"
+    centralizar "XP: $xp / $xp_proximo"
+    centralizar "Cooldown: $cooldown"
 
     if [ "$pocao_usada" = false ]; then
-        echo -e "Poção disponível: ${GREEN}Sim${NC}"
+        centralizar "Poção disponível: Sim"
     else
-        echo -e "Poção disponível: ${RED}Não${NC}"
+        centralizar "Poção disponível: Não"
     fi
     echo ""
 }
 
 turno_jogador() {
-    echo "1 - Atacar"
-    echo "2 - Defender"
-    echo "3 - Sobrecarga"
-    echo "4 - Usar Poção"
-    echo "5 - Salvar e Sair"
+    centralizar "1 - Atacar"
+    centralizar "2 - Defender"
+    centralizar "3 - Sobrecarga"
+    centralizar "4 - Usar Poção"
+    centralizar "5 - Salvar e Sair"
     read escolha
 
     defendendo=false
@@ -183,33 +201,24 @@ turno_jogador() {
         1)
             dano=$(( RANDOM % (18 + nivel) + 5 ))
             inimigo=$(( inimigo - dano ))
-            echo -e "${YELLOW}Você causou $dano.${NC}"
             ;;
         2)
             defendendo=true
-            echo "Modo defensivo ativado."
             ;;
         3)
             if [ $cooldown -le 0 ]; then
                 dano=$(( RANDOM % 30 + 25 ))
                 inimigo=$(( inimigo - dano ))
                 cooldown=3
-                echo -e "${CYAN}Sobrecarga causou $dano!${NC}"
                 if [ $(( RANDOM % 2 )) -eq 0 ]; then
                     inimigo_stunado=true
-                    echo -e "${CYAN}Inimigo atordoado!${NC}"
                 fi
-            else
-                echo "Em recarga."
             fi
             ;;
         4)
             if [ "$pocao_usada" = false ]; then
                 vida=$vida_max
                 pocao_usada=true
-                echo -e "${GREEN}Vida restaurada!${NC}"
-            else
-                echo "Poção já usada nesta fase."
             fi
             ;;
         5)
@@ -220,9 +229,7 @@ turno_jogador() {
 }
 
 turno_inimigo() {
-
     if [ "$inimigo_stunado" = true ]; then
-        echo -e "${CYAN}Inimigo perdeu o turno!${NC}"
         inimigo_stunado=false
         return
     fi
@@ -231,11 +238,9 @@ turno_inimigo() {
 
     if [ "$defendendo" = true ]; then
         ataque=$(( ataque / 2 ))
-        echo "Defesa reduziu o dano."
     fi
 
     vida=$(( vida - ataque ))
-    echo -e "${RED}Inimigo causou $ataque.${NC}"
 
     if [ $cooldown -gt 0 ]; then
         cooldown=$(( cooldown - 1 ))
@@ -244,8 +249,9 @@ turno_inimigo() {
 
 verificar_estado() {
     if [ $vida -le 0 ]; then
-        echo -e "${RED}Você morreu na fase $fase.${NC}"
-        echo "Deseja salvar antes de sair? (s/n)"
+        centralizar "Você morreu na fase $fase."
+        echo ""
+        centralizar "Deseja salvar antes de sair? (s/n)"
         read resp
         if [ "$resp" = "s" ]; then
             salvar_progresso
@@ -262,7 +268,6 @@ verificar_estado() {
             xp_proximo=$(( xp_proximo + 30 ))
             nivel=$(( nivel + 1 ))
             vida_max=$(( vida_max + 15 ))
-            echo -e "${CYAN}LEVEL UP! Agora nível $nivel${NC}"
         fi
     fi
 }
