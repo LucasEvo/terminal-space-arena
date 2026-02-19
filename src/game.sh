@@ -8,8 +8,12 @@ CYAN='\033[0;36m'
 MAGENTA='\033[0;35m'
 NC='\033[0m'
 
+# ===== ESTADO DO JOGO =====
 nivel=1
 vida_max=100
+xp=0
+xp_proximo=50
+defendendo=false
 
 iniciar_nivel() {
     vida=$vida_max
@@ -25,7 +29,7 @@ iniciar_nivel() {
 
     echo ""
     echo "================================="
-    echo -e "      ${CYAN}BATALHA ESPACIAL - NÍVEL $nivel${NC}"
+    echo -e "   ${CYAN}TERMINAL SPACE ARENA - NÍVEL $nivel${NC}"
     echo "================================="
 }
 
@@ -33,6 +37,7 @@ mostrar_status() {
     echo ""
     echo -e "Sua vida: ${GREEN}$vida${NC}"
     echo -e "Vida do inimigo: ${RED}$inimigo${NC}"
+    echo -e "XP: ${YELLOW}$xp / $xp_proximo${NC}"
     echo ""
 }
 
@@ -40,6 +45,8 @@ turno_jogador() {
     echo "1 - Atacar"
     echo "2 - Defender"
     read escolha
+
+    defendendo=false
 
     if [ "$escolha" = "1" ]; then
         critico=$(( RANDOM % 5 ))
@@ -57,7 +64,6 @@ turno_jogador() {
         defendendo=true
         echo "🛡 Você entrou em modo defensivo!"
     else
-        defendendo=false
         echo "Você hesitou..."
     fi
 }
@@ -82,8 +88,6 @@ turno_inimigo() {
 
     vida=$(( vida - ataque ))
     echo "O inimigo causou $ataque de dano!"
-
-    defendendo=false
 }
 
 verificar_vitoria() {
@@ -93,9 +97,24 @@ verificar_vitoria() {
     fi
 
     if [ $inimigo -le 0 ]; then
+        ganho_xp=$(( 20 + nivel * 5 ))
+        xp=$(( xp + ganho_xp ))
+
         echo -e "${GREEN}Você venceu o nível $nivel!${NC}"
-        nivel=$(( nivel + 1 ))
-        vida_max=$(( vida_max + 10 ))
+        echo -e "Você ganhou ${YELLOW}$ganho_xp XP${NC}"
+
+        if [ $xp -ge $xp_proximo ]; then
+            xp=$(( xp - xp_proximo ))
+            xp_proximo=$(( xp_proximo + 30 ))
+            nivel=$(( nivel + 1 ))
+            vida_max=$(( vida_max + 15 ))
+            vida=$vida_max
+
+            echo -e "${CYAN}LEVEL UP! Você agora está no nível 
+$nivel${NC}"
+            echo -e "${CYAN}Vida máxima aumentada!${NC}"
+        fi
+
         sleep 2
     fi
 }
