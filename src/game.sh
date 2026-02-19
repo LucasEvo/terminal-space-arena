@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# ===== CORES =====
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -10,7 +9,6 @@ NC='\033[0m'
 
 SAVE_FILE="save.dat"
 
-# ===== ESTADO =====
 nivel=1
 fase=1
 vida_max=100
@@ -21,7 +19,50 @@ cooldown=0
 pocao_usada=false
 inimigo_stunado=false
 
+# ===== TELA DE TÍTULO =====
+
+animar_texto() {
+    texto="$1"
+    for (( i=0; i<${#texto}; i++ )); do
+        printf "${texto:$i:1}"
+        sleep 0.02
+    done
+    echo ""
+}
+
+tela_titulo() {
+    clear
+    echo -e "${CYAN}"
+    echo "  ████████╗███████╗██████╗ ███╗   
+███╗"
+    echo "  ╚══██╔══╝██╔════╝██╔══██╗████╗ 
+████║"
+    echo "     ██║   █████╗  
+██████╔╝██╔████╔██║"
+    echo "     ██║   ██╔══╝  
+██╔══██╗██║╚██╔╝██║"
+    echo "     ██║   ███████╗██║  ██║██║ ╚═╝ 
+██║"
+    echo "     ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝"
+    echo ""
+    echo "        SPACE ARENA"
+    echo -e "${NC}"
+    sleep 0.5
+
+    animar_texto "Inicializando sistemas..."
+    sleep 0.5
+    animar_texto "Carregando motores..."
+    sleep 0.5
+    animar_texto "Preparando combate..."
+    sleep 1
+
+    echo ""
+    echo "Pressione ENTER para continuar"
+    read
+}
+
 # ===== SAVE =====
+
 salvar_progresso() {
     echo "nivel=$nivel" > "$SAVE_FILE"
     echo "fase=$fase" >> "$SAVE_FILE"
@@ -49,6 +90,7 @@ resetar_progresso() {
 }
 
 # ===== MENU =====
+
 menu_inicial() {
     clear
     echo "================================="
@@ -88,6 +130,7 @@ menu_inicial() {
 }
 
 # ===== JOGO =====
+
 iniciar_fase() {
     vida=$vida_max
     cooldown=0
@@ -115,12 +158,6 @@ mostrar_status() {
     echo -e "Inimigo: ${RED}$inimigo${NC}"
     echo -e "XP: ${YELLOW}$xp / $xp_proximo${NC}"
     echo -e "Cooldown Sobrecarga: $cooldown"
-
-    if [ "$pocao_usada" = false ]; then
-        echo -e "Poção disponível: ${GREEN}Sim${NC}"
-    else
-        echo -e "Poção disponível: ${RED}Não${NC}"
-    fi
     echo ""
 }
 
@@ -138,7 +175,7 @@ turno_jogador() {
         1)
             dano=$(( RANDOM % (18 + nivel) + 5 ))
             inimigo=$(( inimigo - dano ))
-            echo -e "${YELLOW}Você causou $dano de dano.${NC}"
+            echo -e "${YELLOW}Você causou $dano.${NC}"
             ;;
         2)
             defendendo=true
@@ -155,16 +192,16 @@ turno_jogador() {
                     echo -e "${CYAN}Inimigo atordoado!${NC}"
                 fi
             else
-                echo "Habilidade em recarga."
+                echo "Em recarga."
             fi
             ;;
         4)
             if [ "$pocao_usada" = false ]; then
                 vida=$vida_max
                 pocao_usada=true
-                echo -e "${GREEN}Vida restaurada completamente!${NC}"
+                echo -e "${GREEN}Vida restaurada!${NC}"
             else
-                echo "Você já usou a poção nesta fase."
+                echo "Poção já usada nesta fase."
             fi
             ;;
         5)
@@ -186,7 +223,6 @@ turno_inimigo() {
 
     if [ "$defendendo" = true ]; then
         ataque=$(( ataque / 2 ))
-        echo "Defesa reduziu o dano."
     fi
 
     vida=$(( vida - ataque ))
@@ -236,5 +272,7 @@ jogo_loop() {
     done
 }
 
+# ===== START =====
+tela_titulo
 menu_inicial
 
