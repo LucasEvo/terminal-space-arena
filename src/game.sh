@@ -7,6 +7,8 @@ CYAN='\033[0;36m'
 MAGENTA='\033[0;35m'
 NC='\033[0m'
 
+SAVE_FILE="save.dat"
+
 nivel=1
 fase=1
 vida_max=100
@@ -16,6 +18,27 @@ defendendo=false
 cooldown=0
 pocao_usada=false
 inimigo_stunado=false
+
+recorde_fase=0
+recorde_nivel=0
+
+# ===== CARREGAR SAVE =====
+carregar_save() {
+    if [ -f "$SAVE_FILE" ]; then
+        source "$SAVE_FILE"
+        echo -e "${CYAN}Recorde carregado:${NC}"
+        echo "Maior fase: $recorde_fase"
+        echo "Maior nível: $recorde_nivel"
+        echo ""
+    fi
+}
+
+# ===== SALVAR RECORDES =====
+salvar_recorde() {
+    echo "recorde_fase=$fase" > "$SAVE_FILE"
+    echo "recorde_nivel=$nivel" >> "$SAVE_FILE"
+    echo -e "${GREEN}Progresso salvo com sucesso!${NC}"
+}
 
 iniciar_nivel() {
     vida=$vida_max
@@ -154,6 +177,19 @@ turno_inimigo() {
 verificar_vitoria() {
     if [ $vida -le 0 ]; then
         echo -e "${RED}Você morreu na fase $fase...${NC}"
+
+        if [ $fase -gt $recorde_fase ]; then
+            echo "Novo recorde de fase!"
+        fi
+
+        echo ""
+        echo "Deseja salvar seu progresso? (s/n)"
+        read resposta
+
+        if [ "$resposta" = "s" ]; then
+            salvar_recorde
+        fi
+
         exit
     fi
 
@@ -179,6 +215,9 @@ $nivel${NC}"
         sleep 2
     fi
 }
+
+# ===== INÍCIO =====
+carregar_save
 
 while true
 do
