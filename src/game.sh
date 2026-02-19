@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# ===== CORES =====
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -17,10 +18,10 @@ xp=0
 xp_proximo=50
 defendendo=false
 cooldown=0
+pocao_usada=false
 inimigo_stunado=false
 
-# ===== FUNÇÕES DE SAVE =====
-
+# ===== SAVE =====
 salvar_progresso() {
     echo "nivel=$nivel" > "$SAVE_FILE"
     echo "fase=$fase" >> "$SAVE_FILE"
@@ -48,7 +49,6 @@ resetar_progresso() {
 }
 
 # ===== MENU =====
-
 menu_inicial() {
     clear
     echo "================================="
@@ -88,10 +88,10 @@ menu_inicial() {
 }
 
 # ===== JOGO =====
-
 iniciar_fase() {
     vida=$vida_max
     cooldown=0
+    pocao_usada=false
     inimigo_stunado=false
 
     if (( fase % 5 == 0 )); then
@@ -105,16 +105,22 @@ iniciar_fase() {
 
     echo ""
     echo "================================="
-    echo -e "FASE $fase | NÍVEL $nivel"
+    echo -e "${CYAN}FASE $fase | NÍVEL $nivel${NC}"
     echo "================================="
 }
 
 mostrar_status() {
     echo ""
-    echo "Vida: $vida"
-    echo "Inimigo: $inimigo"
-    echo "XP: $xp / $xp_proximo"
-    echo "Cooldown Sobrecarga: $cooldown"
+    echo -e "Vida: ${GREEN}$vida${NC}"
+    echo -e "Inimigo: ${RED}$inimigo${NC}"
+    echo -e "XP: ${YELLOW}$xp / $xp_proximo${NC}"
+    echo -e "Cooldown Sobrecarga: $cooldown"
+
+    if [ "$pocao_usada" = false ]; then
+        echo -e "Poção disponível: ${GREEN}Sim${NC}"
+    else
+        echo -e "Poção disponível: ${RED}Não${NC}"
+    fi
     echo ""
 }
 
@@ -122,7 +128,8 @@ turno_jogador() {
     echo "1 - Atacar"
     echo "2 - Defender"
     echo "3 - Sobrecarga"
-    echo "4 - Salvar e Sair"
+    echo "4 - Usar Poção"
+    echo "5 - Salvar e Sair"
     read escolha
 
     defendendo=false
@@ -131,7 +138,7 @@ turno_jogador() {
         1)
             dano=$(( RANDOM % (18 + nivel) + 5 ))
             inimigo=$(( inimigo - dano ))
-            echo "Você causou $dano."
+            echo -e "${YELLOW}Você causou $dano de dano.${NC}"
             ;;
         2)
             defendendo=true
@@ -142,17 +149,25 @@ turno_jogador() {
                 dano=$(( RANDOM % 30 + 25 ))
                 inimigo=$(( inimigo - dano ))
                 cooldown=3
-                echo "Sobrecarga causou $dano!"
-                chance=$(( RANDOM % 2 ))
-                if [ $chance -eq 0 ]; then
+                echo -e "${CYAN}Sobrecarga causou $dano!${NC}"
+                if [ $(( RANDOM % 2 )) -eq 0 ]; then
                     inimigo_stunado=true
-                    echo "Inimigo atordoado!"
+                    echo -e "${CYAN}Inimigo atordoado!${NC}"
                 fi
             else
-                echo "Em recarga."
+                echo "Habilidade em recarga."
             fi
             ;;
         4)
+            if [ "$pocao_usada" = false ]; then
+                vida=$vida_max
+                pocao_usada=true
+                echo -e "${GREEN}Vida restaurada completamente!${NC}"
+            else
+                echo "Você já usou a poção nesta fase."
+            fi
+            ;;
+        5)
             salvar_progresso
             exit
             ;;
@@ -162,7 +177,7 @@ turno_jogador() {
 turno_inimigo() {
 
     if [ "$inimigo_stunado" = true ]; then
-        echo "Inimigo perdeu o turno."
+        echo -e "${CYAN}Inimigo perdeu o turno!${NC}"
         inimigo_stunado=false
         return
     fi
@@ -171,10 +186,11 @@ turno_inimigo() {
 
     if [ "$defendendo" = true ]; then
         ataque=$(( ataque / 2 ))
+        echo "Defesa reduziu o dano."
     fi
 
     vida=$(( vida - ataque ))
-    echo "Inimigo causou $ataque."
+    echo -e "${RED}Inimigo causou $ataque.${NC}"
 
     if [ $cooldown -gt 0 ]; then
         cooldown=$(( cooldown - 1 ))
@@ -201,7 +217,7 @@ verificar_estado() {
             xp_proximo=$(( xp_proximo + 30 ))
             nivel=$(( nivel + 1 ))
             vida_max=$(( vida_max + 15 ))
-            echo "LEVEL UP! Agora nível $nivel"
+            echo -e "${CYAN}LEVEL UP! Agora nível $nivel${NC}"
         fi
     fi
 }
@@ -220,6 +236,5 @@ jogo_loop() {
     done
 }
 
-# ===== START =====
 menu_inicial
 
