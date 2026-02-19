@@ -2,32 +2,47 @@
 
 Mini RPG de batalha espacial desenvolvido em Bash puro.
 
-## Objetivo
+## 📌 Descrição
 
-Criar um sistema de combate progressivo no terminal,
-com:
+Projeto criado com o objetivo de praticar:
 
-- Sistema de níveis
-- Chefões
-- Ataques críticos
-- Escalonamento de dificuldade
-- Uso de cores ANSI
-
-## Tecnologias utilizadas
-
-- Bash
+- Lógica de programação
 - Estruturas de repetição
 - Condicionais
-- Operadores aritméticos
-- Geração de números aleatórios
+- Escalonamento de dificuldade
+- Uso de cores ANSI no terminal
+- Organização de projeto com Git
 
-## Próximas melhorias
+## 🚀 Como executar
 
-- Sistema de experiência
-- Sistema de inventário
-- Registro de recordes
-- Salvamento de progresso
-- Balanceamento da curva de dificuldade
+Clone o repositório:
 
-# terminal-space-arena
-# terminal-space-arena
+git clone https://github.com/LucasEvo/terminal-space-arena.git
+
+Entre na pasta:
+
+cd terminal-space-arena/src
+
+Torne executável:
+
+chmod +x game.sh
+
+Execute:
+
+./game.sh
+
+## 🎮 Funcionalidades
+
+- Sistema de níveis
+- Chefões a cada 5 níveis
+- Ataques críticos
+- Sistema de defesa
+- Progressão dinâmica
+
+## 📈 Próximas melhorias
+
+- Sistema de experiência (XP)
+- Salvamento de recorde
+- Refatoração com funções
+- Versão em Python
+
