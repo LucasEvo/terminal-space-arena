@@ -30,3 +30,4 @@ com:
 - Balanceamento da curva de dificuldade
 
 # terminal-space-arena
+# terminal-space-arena
