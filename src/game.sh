@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# ===== CORES =====
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -10,82 +9,71 @@ NC='\033[0m'
 
 SAVE_FILE="save.dat"
 
-# ===== ESTADO =====
 nivel=1
 fase=1
 vida_max=100
+vida=100
 xp=0
 xp_proximo=50
 defendendo=false
 cooldown=0
 pocao_usada=false
 inimigo_stunado=false
+inimigo=0
+inimigo_max=1
 
-# ===== CENTRALIZAÇÃO INTELIGENTE =====
+# ===== CENTRALIZAR =====
 centralizar() {
     largura_terminal=$(tput cols)
     texto="$1"
-
-    # Remove códigos ANSI para medir tamanho real
     texto_limpo=$(echo -e "$texto" | sed 's/\x1b\[[0-9;]*m//g')
     comprimento=${#texto_limpo}
 
-    if [ $comprimento -lt $largura_terminal ]; then
+    if [ "$comprimento" -lt "$largura_terminal" ]; then
         padding=$(( (largura_terminal - comprimento) / 2 ))
-        printf "%*s" $padding ""
+        printf "%*s" "$padding" ""
     fi
 
     echo -e "$texto"
 }
 
-# ===== ANIMAÇÃO CENTRALIZADA =====
-animar_texto() {
-    largura_terminal=$(tput cols)
-    texto="$1"
-    texto_limpo="$texto"
-    comprimento=${#texto_limpo}
-    padding=$(( (largura_terminal - comprimento) / 2 ))
+# ===== BARRA DE VIDA =====
+barra_vida() {
+    atual=$1
+    maximo=$2
+    largura_barra=20
 
-    printf "%*s" $padding ""
+    if [ -z "$atual" ]; then atual=0; fi
+    if [ -z "$maximo" ] || [ "$maximo" -le 0 ]; then maximo=1; fi
 
-    for (( i=0; i<${#texto}; i++ )); do
-        printf "${texto:$i:1}"
-        sleep 0.015
-    done
-    echo ""
+    proporcao=$(( atual * largura_barra / maximo ))
+
+    if [ "$proporcao" -lt 0 ]; then proporcao=0; fi
+    if [ "$proporcao" -gt "$largura_barra" ]; then 
+proporcao=$largura_barra; fi
+
+    vazia=$(( largura_barra - proporcao ))
+
+    barra_cheia=$(printf "%${proporcao}s" | tr ' ' '█')
+    barra_vazia=$(printf "%${vazia}s" | tr ' ' '░')
+
+    echo "${barra_cheia}${barra_vazia}"
 }
 
-# ===== TELA DE TÍTULO =====
+# ===== TÍTULO =====
 tela_titulo() {
     clear
     echo -e "${CYAN}"
-
-    largura=$(tput cols)
-
-    if [ "$largura" -ge 80 ]; then
-        centralizar "  _____  _____  _____  _____ "
-        centralizar " |_   _||  ___||  ___||  ___|"
-        centralizar "   | |  | |__  | |__  | |__  "
-        centralizar "   | |  |  __| |  __| |  __| "
-        centralizar "   | |  | |___ | |___ | |___ "
-        centralizar "   \_/   \____/ \____/ \____/ "
-        echo ""
-        centralizar "${YELLOW}SPACE ARENA${NC}"
-    else
-        centralizar "${YELLOW}TERMINAL SPACE ARENA${NC}"
-    fi
-
+    centralizar "  _____  _____  _____  _____ "
+    centralizar " |_   _||  ___||  ___||  ___|"
+    centralizar "   | |  | |__  | |__  | |__  "
+    centralizar "   | |  |  __| |  __| |  __| "
+    centralizar "   | |  | |___ | |___ | |___ "
+    centralizar "   \_/   \____/ \____/ \____/ "
+    echo ""
+    centralizar "${YELLOW}SPACE ARENA${NC}"
     echo -e "${NC}"
     sleep 0.4
-
-    animar_texto "Inicializando sistemas..."
-    sleep 0.3
-    animar_texto "Carregando motores..."
-    sleep 0.3
-    animar_texto "Preparando combate..."
-    sleep 0.6
-
-    echo ""
     centralizar "Pressione ENTER para continuar"
     read
 }
@@ -105,16 +93,7 @@ carregar_progresso() {
         source "$SAVE_FILE"
         centralizar "${CYAN}Progresso carregado.${NC}"
         sleep 1
-    else
-        centralizar "Nenhum progresso encontrado."
-        sleep 1
     fi
-}
-
-resetar_progresso() {
-    rm -f "$SAVE_FILE"
-    centralizar "${RED}Progresso apagado.${NC}"
-    sleep 1
 }
 
 # ===== MENU =====
@@ -136,6 +115,7 @@ menu_inicial() {
             nivel=1
             fase=1
             vida_max=100
+            vida=100
             xp=0
             xp_proximo=50
             jogo_loop
@@ -145,7 +125,7 @@ menu_inicial() {
             jogo_loop
             ;;
         3)
-            resetar_progresso
+            rm -f "$SAVE_FILE"
             menu_inicial
             ;;
         4)
@@ -166,12 +146,12 @@ iniciar_fase() {
 
     if (( fase % 5 == 0 )); then
         inimigo=$(( 120 + nivel * 20 ))
-        boss=true
         centralizar "${MAGENTA}⚠ CHEFÃO DA FASE $fase ⚠${NC}"
     else
         inimigo=$(( 60 + nivel * 15 ))
-        boss=false
     fi
+
+    inimigo_max=$inimigo
 
     echo ""
     centralizar "================================="
@@ -181,8 +161,12 @@ iniciar_fase() {
 
 mostrar_status() {
     echo ""
-    centralizar "Vida: ${GREEN}$vida${NC}"
-    centralizar "Inimigo: ${RED}$inimigo${NC}"
+
+    barra_jogador=$(barra_vida $vida $vida_max)
+    barra_inimigo=$(barra_vida $inimigo $inimigo_max)
+
+    centralizar "Vida: ${GREEN}$vida${NC}  $barra_jogador"
+    centralizar "Inimigo: ${RED}$inimigo${NC}  $barra_inimigo"
     centralizar "XP: ${YELLOW}$xp / $xp_proximo${NC}"
     centralizar "Cooldown: $cooldown"
 
@@ -191,6 +175,7 @@ mostrar_status() {
     else
         centralizar "Poção disponível: ${RED}Não${NC}"
     fi
+
     echo ""
 }
 
@@ -293,7 +278,6 @@ jogo_loop() {
     done
 }
 
-# ===== START =====
 tela_titulo
 menu_inicial
 
