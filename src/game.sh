@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# ===== CORES =====
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -8,24 +7,26 @@ CYAN='\033[0;36m'
 MAGENTA='\033[0;35m'
 NC='\033[0m'
 
-# ===== ESTADO =====
 nivel=1
+fase=1
 vida_max=100
 xp=0
 xp_proximo=50
 defendendo=false
 cooldown=0
 pocao_usada=false
+inimigo_stunado=false
 
 iniciar_nivel() {
     vida=$vida_max
     cooldown=0
     pocao_usada=false
+    inimigo_stunado=false
 
-    if (( nivel % 5 == 0 )); then
+    if (( fase % 5 == 0 )); then
         inimigo=$(( 120 + nivel * 20 ))
         boss=true
-        echo -e "${MAGENTA}⚠ CHEFÃO DETECTADO ⚠${NC}"
+        echo -e "${MAGENTA}⚠ CHEFÃO DA FASE $fase ⚠${NC}"
     else
         inimigo=$(( 60 + nivel * 15 ))
         boss=false
@@ -33,7 +34,7 @@ iniciar_nivel() {
 
     echo ""
     echo "================================="
-    echo -e "   ${CYAN}TERMINAL SPACE ARENA - NÍVEL $nivel${NC}"
+    echo -e "   ${CYAN}FASE $fase  |  NÍVEL $nivel${NC}"
     echo "================================="
 }
 
@@ -86,6 +87,12 @@ turno_jogador() {
                 cooldown=3
                 echo -e "${CYAN}⚡ SOBRECARGA ATIVADA! $dano de 
 dano!${NC}"
+
+                chance_stun=$(( RANDOM % 2 ))
+                if [ $chance_stun -eq 0 ]; then
+                    inimigo_stunado=true
+                    echo -e "${CYAN}⚡ O inimigo ficou ATORDOADO!${NC}"
+                fi
             else
                 echo "Habilidade ainda em recarga!"
             fi
@@ -97,7 +104,7 @@ dano!${NC}"
                 echo -e "${GREEN}🧪 Poção usada! Vida restaurada 
 totalmente!${NC}"
             else
-                echo "Você já usou a poção neste nível!"
+                echo "Você já usou a poção nesta fase!"
             fi
             ;;
         *)
@@ -107,6 +114,13 @@ totalmente!${NC}"
 }
 
 turno_inimigo() {
+
+    if [ "$inimigo_stunado" = true ]; then
+        echo -e "${CYAN}O inimigo perdeu o turno!${NC}"
+        inimigo_stunado=false
+        return
+    fi
+
     if [ "$boss" = true ]; then
         crit_boss=$(( RANDOM % 3 ))
         ataque=$(( RANDOM % (20 + nivel) + 10 ))
@@ -121,7 +135,7 @@ turno_inimigo() {
 
     if [ "$defendendo" = true ]; then
         if [ "$boss" = true ]; then
-            ataque=$(( ataque * 40 / 100 ))  # 60% redução
+            ataque=$(( ataque * 40 / 100 ))
             echo "🛡 Defesa absorveu grande parte do dano do chefão!"
         else
             ataque=$(( ataque / 2 ))
@@ -139,15 +153,16 @@ turno_inimigo() {
 
 verificar_vitoria() {
     if [ $vida -le 0 ]; then
-        echo -e "${RED}Você morreu no nível $nivel...${NC}"
+        echo -e "${RED}Você morreu na fase $fase...${NC}"
         exit
     fi
 
     if [ $inimigo -le 0 ]; then
         ganho_xp=$(( 20 + nivel * 5 ))
         xp=$(( xp + ganho_xp ))
+        fase=$(( fase + 1 ))
 
-        echo -e "${GREEN}Você venceu o nível $nivel!${NC}"
+        echo -e "${GREEN}Você venceu a fase!${NC}"
         echo -e "Você ganhou ${YELLOW}$ganho_xp XP${NC}"
 
         if [ $xp -ge $xp_proximo ]; then
@@ -159,7 +174,6 @@ verificar_vitoria() {
 
             echo -e "${CYAN}LEVEL UP! Você agora está no nível 
 $nivel${NC}"
-            echo -e "${CYAN}Vida máxima aumentada!${NC}"
         fi
 
         sleep 2
