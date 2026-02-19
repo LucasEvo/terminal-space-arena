@@ -120,8 +120,13 @@ turno_inimigo() {
     fi
 
     if [ "$defendendo" = true ]; then
-        ataque=$(( ataque / 2 ))
-        echo "🛡 Defesa reduziu o dano!"
+        if [ "$boss" = true ]; then
+            ataque=$(( ataque * 40 / 100 ))  # 60% redução
+            echo "🛡 Defesa absorveu grande parte do dano do chefão!"
+        else
+            ataque=$(( ataque / 2 ))
+            echo "🛡 Defesa reduziu o dano!"
+        fi
     fi
 
     vida=$(( vida - ataque ))
