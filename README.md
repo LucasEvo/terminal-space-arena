@@ -1,48 +1,126 @@
-# Terminal Space Arena
+# 🚀 Terminal Space Arena
 
-Mini RPG de batalha espacial desenvolvido em Bash puro.
+Um jogo de combate por turnos totalmente executado no terminal, 
+desenvolvido em Bash, com arquitetura modular e sistema de progressão.
 
-## 📌 Descrição
+Projeto criado com foco em organização de código, separação de 
+responsabilidades, compatibilidade com Bash 3.2 (macOS) e evolução 
+incremental versionada com Git.
 
-Projeto criado com o objetivo de praticar:
+---
 
-- Lógica de programação
-- Estruturas de repetição
-- Condicionais
-- Escalonamento de dificuldade
-- Uso de cores ANSI no terminal
-- Organização de projeto com Git
+## 🎮 Sobre o Jogo
 
-## 🚀 Como executar
+Terminal Space Arena é um jogo de combate em turnos onde o jogador 
+enfrenta inimigos progressivamente mais fortes, incluindo chefões a cada 5 
+fases.
 
-Clone o repositório:
+O jogo inclui:
 
-git clone https://github.com/LucasEvo/terminal-space-arena.git
+- Sistema de níveis  
+- Progressão de XP  
+- Barra de vida dinâmica no terminal  
+- Habilidade especial com cooldown  
+- Poção limitada por fase  
+- Sistema de salvamento  
+- Interface centralizada responsiva  
+- Arquitetura modular  
 
-Entre na pasta:
+Tudo executado exclusivamente em Bash.
 
-cd terminal-space-arena/src
+---
 
-Torne executável:
+## 🧠 Conceitos Técnicos Aplicados
 
-chmod +x game.sh
+Este projeto vai além de um simples jogo. Ele demonstra:
 
-Execute:
+- Modularização com `source`
+- Separação de responsabilidades (UI, combate, utilidades, persistência)
+- Funções reutilizáveis
+- Controle de estado global
+- Programação defensiva (evitando divisão por zero)
+- Compatibilidade com versões antigas do Bash
+- Estrutura escalável
+- Versionamento incremental documentado
 
-./game.sh
+---
 
-## 🎮 Funcionalidades
+## 📂 Estrutura do Projeto
 
-- Sistema de níveis
-- Chefões a cada 5 níveis
-- Ataques críticos
-- Sistema de defesa
-- Progressão dinâmica
+terminal-space-arena/
+│
+├── src/
+│   ├── main.sh        # Ponto de entrada da aplicação
+│   ├── ui.sh          # Interface e menus
+│   ├── combat.sh      # Mecânicas de combate
+│   ├── save.sh        # Sistema de salvamento
+│   └── utils.sh       # Funções utilitárias (cores, centralização, 
+barra)
+│
+├── save.dat           # Arquivo de progresso
+└── README.md
 
-## 📈 Próximas melhorias
+---
 
-- Sistema de experiência (XP)
-- Salvamento de recorde
-- Refatoração com funções
-- Versão em Python
+## ▶️ Como Executar
+
+No terminal:
+
+cd terminal-space-arena/src  
+chmod +x main.sh  
+./main.sh  
+
+Compatível com:
+
+- macOS (Bash 3.2)
+- Linux
+
+---
+
+## 🛠 Tecnologias Utilizadas
+
+- Bash  
+- ANSI Escape Codes  
+- Git  
+- Terminal nativo  
+
+---
+
+## 🧱 Decisões de Arquitetura
+
+O projeto começou como um único script monolítico e foi posteriormente 
+refatorado para arquitetura modular, visando:
+
+- Melhor legibilidade  
+- Manutenção simplificada  
+- Escalabilidade  
+- Clareza estrutural  
+
+A refatoração foi versionada e documentada no histórico de commits.
+
+---
+
+## 🚧 Roadmap Futuro
+
+- Sistema de habilidades desbloqueáveis  
+- Barra de XP visual  
+- Inimigos com comportamentos diferenciados  
+- Sistema de itens  
+- Separação adicional entre lógica de progressão e combate  
+- Melhorias visuais na interface  
+
+---
+
+## 📌 Objetivo do Projeto
+
+Demonstrar domínio de:
+
+- Lógica de programação  
+- Organização modular  
+- Evolução incremental de software  
+- Controle de estado em shell script  
+- Pensamento arquitetural aplicado mesmo em ambientes simples  
+
+Projeto desenvolvido como exercício prático de evolução técnica e 
+organização de código.
 
