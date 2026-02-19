@@ -21,26 +21,33 @@ cooldown=0
 pocao_usada=false
 inimigo_stunado=false
 
-# ===== FUNÇÃO PARA CENTRALIZAR TEXTO =====
+# ===== CENTRALIZAÇÃO INTELIGENTE =====
 centralizar() {
     largura_terminal=$(tput cols)
     texto="$1"
-    comprimento=${#texto}
+
+    # Remove códigos ANSI para medir tamanho real
+    texto_limpo=$(echo -e "$texto" | sed 's/\x1b\[[0-9;]*m//g')
+    comprimento=${#texto_limpo}
+
     if [ $comprimento -lt $largura_terminal ]; then
         padding=$(( (largura_terminal - comprimento) / 2 ))
-        printf "%*s%s\n" $padding "" "$texto"
-    else
-        echo "$texto"
+        printf "%*s" $padding ""
     fi
+
+    echo -e "$texto"
 }
 
-# ===== ANIMAÇÃO =====
+# ===== ANIMAÇÃO CENTRALIZADA =====
 animar_texto() {
-    texto="$1"
     largura_terminal=$(tput cols)
-    comprimento=${#texto}
+    texto="$1"
+    texto_limpo="$texto"
+    comprimento=${#texto_limpo}
     padding=$(( (largura_terminal - comprimento) / 2 ))
+
     printf "%*s" $padding ""
+
     for (( i=0; i<${#texto}; i++ )); do
         printf "${texto:$i:1}"
         sleep 0.015
@@ -63,9 +70,9 @@ tela_titulo() {
         centralizar "   | |  | |___ | |___ | |___ "
         centralizar "   \_/   \____/ \____/ \____/ "
         echo ""
-        centralizar "SPACE ARENA"
+        centralizar "${YELLOW}SPACE ARENA${NC}"
     else
-        centralizar "TERMINAL SPACE ARENA"
+        centralizar "${YELLOW}TERMINAL SPACE ARENA${NC}"
     fi
 
     echo -e "${NC}"
@@ -90,23 +97,23 @@ salvar_progresso() {
     echo "vida_max=$vida_max" >> "$SAVE_FILE"
     echo "xp=$xp" >> "$SAVE_FILE"
     echo "xp_proximo=$xp_proximo" >> "$SAVE_FILE"
-    echo -e "${GREEN}Progresso salvo.${NC}"
+    centralizar "${GREEN}Progresso salvo.${NC}"
 }
 
 carregar_progresso() {
     if [ -f "$SAVE_FILE" ]; then
         source "$SAVE_FILE"
-        echo -e "${CYAN}Progresso carregado.${NC}"
+        centralizar "${CYAN}Progresso carregado.${NC}"
         sleep 1
     else
-        echo "Nenhum progresso encontrado."
+        centralizar "Nenhum progresso encontrado."
         sleep 1
     fi
 }
 
 resetar_progresso() {
     rm -f "$SAVE_FILE"
-    echo -e "${RED}Progresso apagado.${NC}"
+    centralizar "${RED}Progresso apagado.${NC}"
     sleep 1
 }
 
@@ -114,7 +121,7 @@ resetar_progresso() {
 menu_inicial() {
     clear
     centralizar "================================="
-    centralizar "TERMINAL SPACE ARENA"
+    centralizar "${CYAN}TERMINAL SPACE ARENA${NC}"
     centralizar "================================="
     echo ""
     centralizar "1 - Novo Jogo"
@@ -160,7 +167,7 @@ iniciar_fase() {
     if (( fase % 5 == 0 )); then
         inimigo=$(( 120 + nivel * 20 ))
         boss=true
-        echo -e "${MAGENTA}⚠ CHEFÃO DA FASE $fase ⚠${NC}"
+        centralizar "${MAGENTA}⚠ CHEFÃO DA FASE $fase ⚠${NC}"
     else
         inimigo=$(( 60 + nivel * 15 ))
         boss=false
@@ -168,21 +175,21 @@ iniciar_fase() {
 
     echo ""
     centralizar "================================="
-    centralizar "FASE $fase | NÍVEL $nivel"
+    centralizar "${CYAN}FASE $fase | NÍVEL $nivel${NC}"
     centralizar "================================="
 }
 
 mostrar_status() {
     echo ""
-    centralizar "Vida: $vida"
-    centralizar "Inimigo: $inimigo"
-    centralizar "XP: $xp / $xp_proximo"
+    centralizar "Vida: ${GREEN}$vida${NC}"
+    centralizar "Inimigo: ${RED}$inimigo${NC}"
+    centralizar "XP: ${YELLOW}$xp / $xp_proximo${NC}"
     centralizar "Cooldown: $cooldown"
 
     if [ "$pocao_usada" = false ]; then
-        centralizar "Poção disponível: Sim"
+        centralizar "Poção disponível: ${GREEN}Sim${NC}"
     else
-        centralizar "Poção disponível: Não"
+        centralizar "Poção disponível: ${RED}Não${NC}"
     fi
     echo ""
 }
@@ -249,7 +256,7 @@ turno_inimigo() {
 
 verificar_estado() {
     if [ $vida -le 0 ]; then
-        centralizar "Você morreu na fase $fase."
+        centralizar "${RED}Você morreu na fase $fase.${NC}"
         echo ""
         centralizar "Deseja salvar antes de sair? (s/n)"
         read resp
