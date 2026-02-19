@@ -9,6 +9,7 @@ NC='\033[0m'
 
 SAVE_FILE="save.dat"
 
+# ===== ESTADO PADRÃO =====
 nivel=1
 fase=1
 vida_max=100
@@ -19,24 +20,30 @@ cooldown=0
 pocao_usada=false
 inimigo_stunado=false
 
-recorde_fase=0
-recorde_nivel=0
-
-# ===== CARREGAR SAVE =====
-carregar_save() {
+# ===== CARREGAR PROGRESSO =====
+carregar_progresso() {
     if [ -f "$SAVE_FILE" ]; then
-        source "$SAVE_FILE"
-        echo -e "${CYAN}Recorde carregado:${NC}"
-        echo "Maior fase: $recorde_fase"
-        echo "Maior nível: $recorde_nivel"
+        echo "Progresso encontrado."
+        echo "Deseja continuar de onde parou? (s/n)"
+        read resposta
+
+        if [ "$resposta" = "s" ]; then
+            source "$SAVE_FILE"
+            echo -e "${CYAN}Progresso carregado!${NC}"
+        else
+            echo "Iniciando novo jogo..."
+        fi
         echo ""
     fi
 }
 
-# ===== SALVAR RECORDES =====
-salvar_recorde() {
-    echo "recorde_fase=$fase" > "$SAVE_FILE"
-    echo "recorde_nivel=$nivel" >> "$SAVE_FILE"
+# ===== SALVAR PROGRESSO =====
+salvar_progresso() {
+    echo "nivel=$nivel" > "$SAVE_FILE"
+    echo "fase=$fase" >> "$SAVE_FILE"
+    echo "vida_max=$vida_max" >> "$SAVE_FILE"
+    echo "xp=$xp" >> "$SAVE_FILE"
+    echo "xp_proximo=$xp_proximo" >> "$SAVE_FILE"
     echo -e "${GREEN}Progresso salvo com sucesso!${NC}"
 }
 
@@ -67,13 +74,6 @@ mostrar_status() {
     echo -e "Vida do inimigo: ${RED}$inimigo${NC}"
     echo -e "XP: ${YELLOW}$xp / $xp_proximo${NC}"
     echo -e "Cooldown da Sobrecarga: $cooldown turnos"
-
-    if [ "$pocao_usada" = false ]; then
-        echo -e "Poção disponível: ${GREEN}Sim${NC}"
-    else
-        echo -e "Poção disponível: ${RED}Não${NC}"
-    fi
-
     echo ""
 }
 
@@ -121,14 +121,8 @@ dano!${NC}"
             fi
             ;;
         4)
-            if [ "$pocao_usada" = false ]; then
-                vida=$vida_max
-                pocao_usada=true
-                echo -e "${GREEN}🧪 Poção usada! Vida restaurada 
-totalmente!${NC}"
-            else
-                echo "Você já usou a poção nesta fase!"
-            fi
+            vida=$vida_max
+            echo -e "${GREEN}🧪 Vida restaurada!${NC}"
             ;;
         *)
             echo "Você hesitou..."
@@ -157,13 +151,8 @@ turno_inimigo() {
     fi
 
     if [ "$defendendo" = true ]; then
-        if [ "$boss" = true ]; then
-            ataque=$(( ataque * 40 / 100 ))
-            echo "🛡 Defesa absorveu grande parte do dano do chefão!"
-        else
-            ataque=$(( ataque / 2 ))
-            echo "🛡 Defesa reduziu o dano!"
-        fi
+        ataque=$(( ataque * 40 / 100 ))
+        echo "🛡 Defesa absorveu parte do dano!"
     fi
 
     vida=$(( vida - ataque ))
@@ -177,17 +166,11 @@ turno_inimigo() {
 verificar_vitoria() {
     if [ $vida -le 0 ]; then
         echo -e "${RED}Você morreu na fase $fase...${NC}"
-
-        if [ $fase -gt $recorde_fase ]; then
-            echo "Novo recorde de fase!"
-        fi
-
-        echo ""
-        echo "Deseja salvar seu progresso? (s/n)"
+        echo "Deseja salvar o progresso atual? (s/n)"
         read resposta
 
         if [ "$resposta" = "s" ]; then
-            salvar_recorde
+            salvar_progresso
         fi
 
         exit
@@ -199,7 +182,6 @@ verificar_vitoria() {
         fase=$(( fase + 1 ))
 
         echo -e "${GREEN}Você venceu a fase!${NC}"
-        echo -e "Você ganhou ${YELLOW}$ganho_xp XP${NC}"
 
         if [ $xp -ge $xp_proximo ]; then
             xp=$(( xp - xp_proximo ))
@@ -208,8 +190,7 @@ verificar_vitoria() {
             vida_max=$(( vida_max + 15 ))
             vida=$vida_max
 
-            echo -e "${CYAN}LEVEL UP! Você agora está no nível 
-$nivel${NC}"
+            echo -e "${CYAN}LEVEL UP! Agora nível $nivel${NC}"
         fi
 
         sleep 2
@@ -217,7 +198,7 @@ $nivel${NC}"
 }
 
 # ===== INÍCIO =====
-carregar_save
+carregar_progresso
 
 while true
 do
