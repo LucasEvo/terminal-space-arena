@@ -8,15 +8,17 @@ CYAN='\033[0;36m'
 MAGENTA='\033[0;35m'
 NC='\033[0m'
 
-# ===== ESTADO DO JOGO =====
+# ===== ESTADO =====
 nivel=1
 vida_max=100
 xp=0
 xp_proximo=50
 defendendo=false
+cooldown=0
 
 iniciar_nivel() {
     vida=$vida_max
+    cooldown=0
 
     if (( nivel % 5 == 0 )); then
         inimigo=$(( 120 + nivel * 20 ))
@@ -38,12 +40,14 @@ mostrar_status() {
     echo -e "Sua vida: ${GREEN}$vida${NC}"
     echo -e "Vida do inimigo: ${RED}$inimigo${NC}"
     echo -e "XP: ${YELLOW}$xp / $xp_proximo${NC}"
+    echo -e "Habilidade especial disponível em: $cooldown turnos"
     echo ""
 }
 
 turno_jogador() {
     echo "1 - Atacar"
     echo "2 - Defender"
+    echo "3 - Sobrecarga (habilidade especial)"
     read escolha
 
     defendendo=false
@@ -63,6 +67,16 @@ turno_jogador() {
     elif [ "$escolha" = "2" ]; then
         defendendo=true
         echo "🛡 Você entrou em modo defensivo!"
+
+    elif [ "$escolha" = "3" ]; then
+        if [ $cooldown -le 0 ]; then
+            dano=$(( RANDOM % 30 + 25 ))
+            inimigo=$(( inimigo - dano ))
+            cooldown=3
+            echo -e "${CYAN}⚡ SOBRECARGA ATIVADA! $dano de dano!${NC}"
+        else
+            echo "Habilidade ainda em recarga!"
+        fi
     else
         echo "Você hesitou..."
     fi
@@ -88,6 +102,10 @@ turno_inimigo() {
 
     vida=$(( vida - ataque ))
     echo "O inimigo causou $ataque de dano!"
+
+    if [ $cooldown -gt 0 ]; then
+        cooldown=$(( cooldown - 1 ))
+    fi
 }
 
 verificar_vitoria() {
