@@ -15,10 +15,12 @@ xp=0
 xp_proximo=50
 defendendo=false
 cooldown=0
+pocao_usada=false
 
 iniciar_nivel() {
     vida=$vida_max
     cooldown=0
+    pocao_usada=false
 
     if (( nivel % 5 == 0 )); then
         inimigo=$(( 120 + nivel * 20 ))
@@ -40,46 +42,68 @@ mostrar_status() {
     echo -e "Sua vida: ${GREEN}$vida${NC}"
     echo -e "Vida do inimigo: ${RED}$inimigo${NC}"
     echo -e "XP: ${YELLOW}$xp / $xp_proximo${NC}"
-    echo -e "Habilidade especial disponível em: $cooldown turnos"
+    echo -e "Cooldown da Sobrecarga: $cooldown turnos"
+
+    if [ "$pocao_usada" = false ]; then
+        echo -e "Poção disponível: ${GREEN}Sim${NC}"
+    else
+        echo -e "Poção disponível: ${RED}Não${NC}"
+    fi
+
     echo ""
 }
 
 turno_jogador() {
     echo "1 - Atacar"
     echo "2 - Defender"
-    echo "3 - Sobrecarga (habilidade especial)"
+    echo "3 - Sobrecarga"
+    echo "4 - Usar Poção"
     read escolha
 
     defendendo=false
 
-    if [ "$escolha" = "1" ]; then
-        critico=$(( RANDOM % 5 ))
-        dano=$(( RANDOM % (18 + nivel) + 5 ))
+    case $escolha in
+        1)
+            critico=$(( RANDOM % 5 ))
+            dano=$(( RANDOM % (18 + nivel) + 5 ))
 
-        if [ $critico -eq 0 ]; then
-            dano=$(( dano * 2 ))
-            echo -e "${YELLOW}🔥 ATAQUE CRÍTICO!${NC}"
-        fi
+            if [ $critico -eq 0 ]; then
+                dano=$(( dano * 2 ))
+                echo -e "${YELLOW}🔥 ATAQUE CRÍTICO!${NC}"
+            fi
 
-        inimigo=$(( inimigo - dano ))
-        echo "Você causou $dano de dano!"
-
-    elif [ "$escolha" = "2" ]; then
-        defendendo=true
-        echo "🛡 Você entrou em modo defensivo!"
-
-    elif [ "$escolha" = "3" ]; then
-        if [ $cooldown -le 0 ]; then
-            dano=$(( RANDOM % 30 + 25 ))
             inimigo=$(( inimigo - dano ))
-            cooldown=3
-            echo -e "${CYAN}⚡ SOBRECARGA ATIVADA! $dano de dano!${NC}"
-        else
-            echo "Habilidade ainda em recarga!"
-        fi
-    else
-        echo "Você hesitou..."
-    fi
+            echo "Você causou $dano de dano!"
+            ;;
+        2)
+            defendendo=true
+            echo "🛡 Você entrou em modo defensivo!"
+            ;;
+        3)
+            if [ $cooldown -le 0 ]; then
+                dano=$(( RANDOM % 30 + 25 ))
+                inimigo=$(( inimigo - dano ))
+                cooldown=3
+                echo -e "${CYAN}⚡ SOBRECARGA ATIVADA! $dano de 
+dano!${NC}"
+            else
+                echo "Habilidade ainda em recarga!"
+            fi
+            ;;
+        4)
+            if [ "$pocao_usada" = false ]; then
+                vida=$vida_max
+                pocao_usada=true
+                echo -e "${GREEN}🧪 Poção usada! Vida restaurada 
+totalmente!${NC}"
+            else
+                echo "Você já usou a poção neste nível!"
+            fi
+            ;;
+        *)
+            echo "Você hesitou..."
+            ;;
+    esac
 }
 
 turno_inimigo() {
@@ -137,7 +161,6 @@ $nivel${NC}"
     fi
 }
 
-# ===== LOOP PRINCIPAL =====
 while true
 do
     iniciar_nivel
